@@ -4,7 +4,7 @@ var emitter = require('contra/emitter');
 var crossvent = require('crossvent');
 var classes = require('./classes');
 var doc = document;
-var documentElement = doc.documentElement;
+var documentElement = doc && doc.documentElement || null;
 
 function dragula (initialContainers, options) {
   var len = arguments.length;
@@ -67,19 +67,25 @@ function dragula (initialContainers, options) {
 
   function events (remove) {
     var op = remove ? 'remove' : 'add';
-    touchy(documentElement, op, 'mousedown', grab);
-    touchy(documentElement, op, 'mouseup', release);
+    if (documentElement) {
+      touchy(documentElement, op, 'mousedown', grab);
+      touchy(documentElement, op, 'mouseup', release);
+    }
   }
 
   function eventualMovements (remove) {
     var op = remove ? 'remove' : 'add';
-    touchy(documentElement, op, 'mousemove', startBecauseMouseMoved);
+    if (documentElement) {
+      touchy(documentElement, op, 'mousemove', startBecauseMouseMoved);
+    }
   }
 
   function movements (remove) {
     var op = remove ? 'remove' : 'add';
-    crossvent[op](documentElement, 'selectstart', preventGrabbed); // IE8
-    crossvent[op](documentElement, 'click', preventGrabbed);
+    if (documentElement) {
+      crossvent[op](documentElement, 'selectstart', preventGrabbed); // IE8
+      crossvent[op](documentElement, 'click', preventGrabbed);
+    }
   }
 
   function destroy () {
@@ -132,8 +138,8 @@ function dragula (initialContainers, options) {
     if (o.ignoreInputTextSelection) {
       var clientX = getCoord('clientX', e);
       var clientY = getCoord('clientY', e);
-      var elementBehindCursor = doc.elementFromPoint(clientX, clientY);
-      if (isInput(elementBehindCursor)) {
+      var elementBehindCursor = doc && doc.elementFromPoint(clientX, clientY);
+      if (elementBehindCursor && isInput(elementBehindCursor)) {
         return;
       }
     }
@@ -551,7 +557,7 @@ function getScroll (scrollProp, offsetProp) {
   if (typeof global[offsetProp] !== 'undefined') {
     return global[offsetProp];
   }
-  if (documentElement.clientHeight) {
+  if (documentElement && documentElement.clientHeight) {
     return documentElement[scrollProp];
   }
   return doc.body[scrollProp];
